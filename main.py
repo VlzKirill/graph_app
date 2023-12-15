@@ -2,12 +2,13 @@ from flask import Flask, render_template, request
 import json
 import matplotlib.pyplot as plt
 import os
-import glob
-import uuid
+import base64
+from io import BytesIO
 
 app = Flask(__name__)
 
-# Функция для считывания данных из JSON файлов
+BENCHMARKS_FOLDER = 'C:\\Users\\Пользователь\\Desktop\\benchmarks'
+
 def read_json_files(folder_path):
     data = []
     for root, dirs, files in os.walk(folder_path):
@@ -18,7 +19,6 @@ def read_json_files(folder_path):
                     data.append(json.load(f))
     return data
 
-# Функция для получения уникальных значений benchmarks.name
 def get_unique_benchmark_names(data):
     unique_names = set()
     for entry in data:
@@ -29,7 +29,11 @@ def get_unique_benchmark_names(data):
                 unique_names.add(name)
     return list(unique_names)
 
-# Функция для построения графика
+def create_static_folder():
+    static_folder = 'static'
+    if not os.path.exists(static_folder):
+        os.makedirs(static_folder)
+
 def plot_graph(data, selected_name):
     x_values = []
     y_values = []
@@ -43,42 +47,36 @@ def plot_graph(data, selected_name):
                 x_values.append(version)
                 y_values.append(benchmark["bytes_per_second"])
 
-    # Используем уникальное имя файла с помощью модуля uuid
-    graph_filename = f'graph_{uuid.uuid4()}.png'
-    graph_path = os.path.join('static', graph_filename)
+    fig, ax = plt.subplots()
+    ax.plot(x_values, y_values, marker='o')
+    ax.set_xlabel('Версия')
+    ax.set_ylabel('Значение bytes_per_second')
+    ax.set_title(f'График для {selected_name}')
+    ax.grid(True)
 
-    plt.plot(x_values, y_values, marker='o')
-    plt.xlabel('Версия')
-    plt.ylabel('Значение bytes_per_second')
-    plt.title(f'График для {selected_name}')
-    plt.grid(True)
+    img_buf = BytesIO()
+    plt.savefig(img_buf, format='png')
+    img_buf.seek(0)
 
-    # Очищаем содержимое папки static перед сохранением нового графика
-    files = glob.glob(os.path.join('static', '*'))
-    for file in files:
-        os.remove(file)
+    graph_data = base64.b64encode(img_buf.getvalue()).decode('utf-8')
 
-    plt.savefig(graph_path)  # Сохраняем график с уникальным именем файла
-    return graph_filename  # Возвращаем имя файла
+    plt.close(fig)
 
+    return graph_data
 
-# Роут для отображения главной страницы
 @app.route('/')
 def index():
-    folder_path = 'C:\\Users\\Пользователь\\Desktop\\benchmarks'
-    data = read_json_files(folder_path)
+    data = read_json_files(BENCHMARKS_FOLDER)
     unique_names = get_unique_benchmark_names(data)
     return render_template('index.html', unique_names=unique_names, selected_name=None)
 
-# Роут для обработки выбора значения из выпадающего списка
 @app.route('/plot', methods=['POST'])
 def plot():
     selected_name = request.form['selected_name']
-    folder_path = 'C:\\Users\\Пользователь\\Desktop\\benchmarks'
-    data = read_json_files(folder_path)
-    graph_filename = plot_graph(data, selected_name)
+    data = read_json_files(BENCHMARKS_FOLDER)
+    graph_data = plot_graph(data, selected_name)
     return render_template('index.html', unique_names=get_unique_benchmark_names(data), selected_name=selected_name,
-                           graph_filename=graph_filename)
+                           graph_data=graph_data)
 
 if __name__ == '__main__':
     app.run(debug=True)
