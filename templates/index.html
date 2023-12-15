@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Выбор бенчмарка и График</title>
+</head>
+<body>
+    <h1>Выберите бенчмарк</h1>
+    <form action="/plot" method="post">
+        <label for="benchmarkSelect">Выберите бенчмарк:</label>
+        <select name="selected_name" id="benchmarkSelect">
+            {% for name in unique_names %}
+                <option value="{{ name }}">{{ name }}</option>
+            {% endfor %}
+        </select>
+        <button type="submit">Построить график</button>
+    </form>
+
+    {% if selected_name %}
+        <h2>График для {{ selected_name }}</h2>
+        <img src="{{ url_for('static', filename='graph.png') }}" alt="График">
+    {% endif %}
+</body>
+</html>
