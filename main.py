@@ -26,6 +26,7 @@ def get_unique_benchmark_names(data):
         for benchmark in benchmarks:
             name = benchmark["name"]
             if name.endswith("real_time_mean"):
+                name = name.replace("/real_time_mean", "")
                 unique_names.add(name)
     return list(unique_names)
 
@@ -72,7 +73,7 @@ def index():
 
 @app.route('/plot', methods=['POST'])
 def plot():
-    selected_name = request.form['selected_name']
+    selected_name = f"{request.form['selected_name']}/real_time_mean"
     data = read_json_files(BENCHMARKS_FOLDER)
     graph_data = plot_graph(data, selected_name)
     return render_template('index.html', unique_names=get_unique_benchmark_names(data), selected_name=selected_name,
