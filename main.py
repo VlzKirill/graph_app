@@ -4,8 +4,12 @@ import matplotlib.pyplot as plt
 import os
 import base64
 from io import BytesIO
+import matplotlib
+
 
 app = Flask(__name__)
+
+matplotlib.use('Agg')
 
 BENCHMARKS_FOLDER = 'C:\\Users\\Пользователь\\Desktop\\benchmarks'
 
