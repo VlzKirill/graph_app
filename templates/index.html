@@ -1,3 +1,4 @@
+<!-- index.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -21,5 +22,16 @@
         <h2>График для {{ selected_name }}</h2>
         <img src="data:image/png;base64,{{ graph_data }}" alt="График">
     {% endif %}
+
+    <!-- Добавленный блок для сводного графика -->
+    <div>
+        <h2>Сводный график</h2>
+        <form action="/summary" method="get">
+            <button type="submit">Сводный график</button>
+        </form>
+        {% if summary_graph_data %}
+            <img src="data:image/png;base64,{{ summary_graph_data }}" alt="Сводный график">
+        {% endif %}
+    </div>
 </body>
 </html>

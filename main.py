@@ -65,6 +65,39 @@ def plot_graph(data, selected_name):
 
     return graph_data
 
+def plot_summary_graph(data, unique_names):
+
+    x_values = []
+    y_values = []
+
+    for unique_name in unique_names:
+        unique_name = f"{unique_name}/real_time_mean"
+        for entry in data:
+            version = entry["version"]["values"][0]
+            benchmarks = entry.get("benchmarks", [])
+
+            for benchmark in benchmarks:
+                if benchmark["name"] == unique_name:
+                    x_values.append(version)
+                    y_values.append(benchmark["bytes_per_second"])
+
+    fig, ax = plt.subplots()
+    ax.plot(x_values, y_values, marker='o')
+    ax.set_xlabel('Версия')
+    ax.set_ylabel('Значение bytes_per_second')
+    ax.set_title(f'Сводный график')
+    ax.grid(True)
+
+    img_buf = BytesIO()
+    plt.savefig(img_buf, format='png')
+    img_buf.seek(0)
+
+    graph_data = base64.b64encode(img_buf.getvalue()).decode('utf-8')
+
+    plt.close(fig)
+
+    return graph_data
+
 @app.route('/')
 def index():
     data = read_json_files(BENCHMARKS_FOLDER)
@@ -78,6 +111,14 @@ def plot():
     graph_data = plot_graph(data, selected_name)
     return render_template('index.html', unique_names=get_unique_benchmark_names(data), selected_name=selected_name,
                            graph_data=graph_data)
+
+@app.route('/summary', methods=['GET'])
+def summary():
+    data = read_json_files(BENCHMARKS_FOLDER)
+    unique_names = get_unique_benchmark_names(data)
+    summary_graph_data = plot_summary_graph(data, unique_names)
+    return render_template('index.html', unique_names=unique_names,
+                           selected_name=None, graph_data=None, summary_graph_data=summary_graph_data)
 
 if __name__ == '__main__':
     app.run(debug=True)
