@@ -1,7 +1,9 @@
 from flask import Flask, render_template, request
-import os
 import json
 import matplotlib.pyplot as plt
+import os
+import glob
+import uuid
 
 app = Flask(__name__)
 
@@ -41,12 +43,24 @@ def plot_graph(data, selected_name):
                 x_values.append(version)
                 y_values.append(benchmark["bytes_per_second"])
 
+    # Используем уникальное имя файла с помощью модуля uuid
+    graph_filename = f'graph_{uuid.uuid4()}.png'
+    graph_path = os.path.join('static', graph_filename)
+
     plt.plot(x_values, y_values, marker='o')
     plt.xlabel('Версия')
     plt.ylabel('Значение bytes_per_second')
     plt.title(f'График для {selected_name}')
     plt.grid(True)
-    plt.savefig('static/graph.png')  # Сохраняем график как изображение
+
+    # Очищаем содержимое папки static перед сохранением нового графика
+    files = glob.glob(os.path.join('static', '*'))
+    for file in files:
+        os.remove(file)
+
+    plt.savefig(graph_path)  # Сохраняем график с уникальным именем файла
+    return graph_filename  # Возвращаем имя файла
+
 
 # Роут для отображения главной страницы
 @app.route('/')
@@ -62,9 +76,9 @@ def plot():
     selected_name = request.form['selected_name']
     folder_path = 'C:\\Users\\Пользователь\\Desktop\\benchmarks'
     data = read_json_files(folder_path)
-    plot_graph(data, selected_name)
-    return render_template('index.html', unique_names=get_unique_benchmark_names(data), selected_name=selected_name)
-
+    graph_filename = plot_graph(data, selected_name)
+    return render_template('index.html', unique_names=get_unique_benchmark_names(data), selected_name=selected_name,
+                           graph_filename=graph_filename)
 
 if __name__ == '__main__':
     app.run(debug=True)
