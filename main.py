@@ -70,7 +70,8 @@ def plot_graph(data, selected_name):
     return graph_data
 
 def plot_summary_graph(data, unique_names):
-    fig, ax = plt.subplots(figsize=(10, 6))  # Устанавливаем начальный размер графика
+    fig, ax = plt.subplots(figsize=(10, 6))
+    num_colors = 20  # Количество цветов в цветовой карте tab20
 
     for i, unique_name in enumerate(unique_names):
         unique_name = f"{unique_name}/real_time_mean"
@@ -85,19 +86,17 @@ def plot_summary_graph(data, unique_names):
                     x_values.append(version)
                     y_values.append(benchmark["bytes_per_second"])
 
-        # Используем уникальный цвет для каждого бенчмарка
-        color = plt.cm.viridis(i / len(unique_names))
-
+        color = plt.cm.tab20(i % num_colors)
         ax.plot(x_values, y_values, marker='o', label=unique_name, color=color)
 
     ax.set_xlabel('Версия')
     ax.set_ylabel('Значение bytes_per_second')
     ax.set_title('Сводный график')
     ax.grid(True)
-    ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.2), fancybox=True, shadow=True, ncol=3)  # Добавляем легенду
+    ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.2), fancybox=True, shadow=True, ncol=3)
 
     img_buf = BytesIO()
-    plt.savefig(img_buf, format='png', bbox_inches='tight')  # bbox_inches='tight' убирает отсечение графика при сохранении
+    plt.savefig(img_buf, format='png', bbox_inches='tight')
     img_buf.seek(0)
 
     graph_data = base64.b64encode(img_buf.getvalue()).decode('utf-8')
@@ -105,6 +104,7 @@ def plot_summary_graph(data, unique_names):
     plt.close(fig)
 
     return graph_data
+
 
 
 @app.route('/')
