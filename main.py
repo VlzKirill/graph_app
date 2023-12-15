@@ -11,7 +11,7 @@ app = Flask(__name__)
 
 matplotlib.use('Agg')
 
-BENCHMARKS_FOLDER = 'C:\\Users\\Пользователь\\Desktop\\benchmarks'
+BENCHMARKS_FOLDER = '/benchmarks'
 
 def read_json_files(folder_path):
     data = []
@@ -130,4 +130,4 @@ def summary():
                            selected_name=None, graph_data=None, summary_graph_data=summary_graph_data)
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(host='0.0.0.0', port=5000)
